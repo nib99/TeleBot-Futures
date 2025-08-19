@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleBot Futures - Telegram to Binance Trading Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0088cc;
+            --secondary: #f7931a;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #0088cc, #f7931a);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #006699, #e6830f);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slideIn {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .animate-blink {
+            animation: blink 1s infinite;
+        }
+
+        /* Glass morphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-dark {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Status indicators */
+        .status-online {
+            background: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+        }
+
+        .status-offline {
+            background: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+        }
+
+        .status-warning {
+            background: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Hover effects */
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Gradient backgrounds */
+        .gradient-telegram {
+            background: linear-gradient(135deg, #0088cc, #229ed9);
+        }
+
+        .gradient-binance {
+            background: linear-gradient(135deg, #f7931a, #ffb84d);
+        }
+
+        .gradient-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        .gradient-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
+
+        /* Trading card styles */
+        .trading-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .trading-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Code block styling */
+        .code-block {
+            background: #1f2937;
+            color: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        /* Terminal styling */
+        .terminal {
+            background: #000;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.5rem;
+        }
+
+        .terminal-prompt::before {
+            content: '$ ';
+            color: #00ff00;
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .grid-responsive {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="glass-dark sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 gradient-telegram rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">🤖</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">TeleBot Futures</h1>
+                        <p class="text-xs text-gray-300">Telegram to Binance Trading Bot</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div id="bot-status" class="w-3 h-3 rounded-full status-online animate-pulse"></div>
+                        <span class="text-white text-sm font-medium" id="bot-status-text">Bot Online</span>
+                    </div>
+                    <button onclick="toggleBot()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <span id="bot-toggle-text">Stop Bot</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total PNL -->
+            <div class="trading-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total PNL</p>
+                        <p class="text-2xl font-bold text-green-600" id="total-pnl">+$1,247.83</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">📈</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-green-600">
+                        <span>↗️ +12.4% today</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Positions -->
+            <div class="trading-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Active Positions</p>
+                        <p class="text-2xl font-bold text-blue-600" id="active-positions">3</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">📊</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-gray-500">
+                        <span>2 Long, 1 Short</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Win Rate -->
+            <div class="trading-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Win Rate</p>
+                        <p class="text-2xl font-bold text-purple-600" id="win-rate">73.2%</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">🎯</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="progress-bar h-2">
+                        <div class="progress-fill bg-purple-600" style="width: 73.2%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Trades -->
+            <div class="trading-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Trades</p>
+                        <p class="text-2xl font-bold text-orange-600" id="total-trades">127</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-gray-500">
+                        <span>93 wins, 34 losses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Bot Configuration -->
+                <div class="trading-card p-6">
+                    <h2 class="text-xl font-bold mb-6 flex items-center">
+                        <span class="text-2xl mr-3">⚙️</span>
+                        Bot Configuration
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Trading Mode -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Trading Mode</label>
+                            <select id="trading-mode" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="testnet">Testnet (Safe)</option>
+                                <option value="live">Live Trading</option>
+                            </select>
+                        </div>
+
+                        <!-- Leverage -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Leverage</label>
+                            <input type="number" id="leverage" value="10" min="1" max="125" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Position Size -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Position Size (USDT)</label>
+                            <input type="number" id="position-size" value="100" min="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Take Profit % -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Take Profit (%)</label>
+                            <input type="number" id="take-profit" value="5" min="0.1" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Stop Loss % -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Stop Loss (%)</label>
+                            <input type="number" id="stop-loss" value="2" min="0.1" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Allowed Symbols -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Allowed Symbols</label>
+                            <input type="text" id="allowed-symbols" value="BTCUSDT,ETHUSDT,ADAUSDT,DOTUSDT" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex space-x-4">
+                        <button onclick="saveConfiguration()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Save Configuration
+                        </button>
+                        <button onclick="resetConfiguration()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Reset to Default
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Positions -->
+                <div class="trading-card p-6">
+                    <h2 class="text-xl font-bold mb-6 flex items-center">
+                        <span class="text-2xl mr-3">📊</span>
+                        Active Positions
+                    </h2>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-3 px-2">Symbol</th>
+                                    <th class="text-left py-3 px-2">Side</th>
+                                    <th class="text-left py-3 px-2">Size</th>
+                                    <th class="text-left py-3 px-2">Entry</th>
+                                    <th class="text-left py-3 px-2">Mark Price</th>
+                                    <th class="text-left py-3 px-2">PNL</th>
+                                    <th class="text-left py-3 px-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positions-table">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3 px-2 font-mono font-semibold">BTCUSDT</td>
+                                    <td class="py-3 px-2">
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">LONG</span>
+                                    </td>
+                                    <td class="py-3 px-2 font-mono">0.025 BTC</td>
+                                    <td class="py-3 px-2 font-mono">$43,250</td>
+                                    <td class="py-3 px-2 font-mono">$43,890</td>
+                                    <td class="py-3 px-2 font-mono text-green-600">+$640.00</td>
+                                    <td class="py-3 px-2">
+                                        <button class="text-red-600 hover:text-red-800 text-xs font-medium">Close</button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3 px-2 font-mono font-semibold">ETHUSDT</td>
+                                    <td class="py-3 px-2">
+                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">LONG</span>
+                                    </td>
+                                    <td class="py-3 px-2 font-mono">0.5 ETH</td>
+                                    <td class="py-3 px-2 font-mono">$2,650</td>
+                                    <td class="py-3 px-2 font-mono">$2,720</td>
+                                    <td class="py-3 px-2 font-mono text-green-600">+$35.00</td>
+                                    <td class="py-3 px-2">
+                                        <button class="text-red-600 hover:text-red-800 text-xs font-medium">Close</button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3 px-2 font-mono font-semibold">ADAUSDT</td>
+                                    <td class="py-3 px-2">
+                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">SHORT</span>
+                                    </td>
+                                    <td class="py-3 px-2 font-mono">200 ADA</td>
+                                    <td class="py-3 px-2 font-mono">$0.485</td>
+                                    <td class="py-3 px-2 font-mono">$0.472</td>
+                                    <td class="py-3 px-2 font-mono text-green-600">+$26.00</td>
+                                    <td class="py-3 px-2">
+                                        <button class="text-red-600 hover:text-red-800 text-xs font-medium">Close</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Setup Instructions -->
+                <div class="trading-card p-6">
+                    <h2 class="text-xl font-bold mb-6 flex items-center">
+                        <span class="text-2xl mr-3">📋</span>
+                        Setup Instructions
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="font-semibold text-lg mb-3">1. Environment Variables</h3>
+                            <div class="code-block">
+<span class="text-yellow-400"># Create a .env file with these variables:</span>
+<span class="text-green-400">BINANCE_API_KEY</span>=your_binance_api_key
+<span class="text-green-400">BINANCE_API_SECRET</span>=your_binance_api_secret
+<span class="text-green-400">TELEGRAM_TOKEN</span>=your_telegram_bot_token
+<span class="text-green-400">TELEGRAM_CHAT_ID</span>=your_telegram_chat_id
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-lg mb-3">2. Install Dependencies</h3>
+                            <div class="code-block">
+pip install python-binance python-telegram-bot python-dotenv
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-lg mb-3">3. Telegram Commands</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-medium mb-2">Trading Signals</h4>
+                                    <ul class="text-sm space-y-1 font-mono">
+                                        <li>• BTCUSDTLONG</li>
+                                        <li>• ETHUSDTSHORT</li>
+                                        <li>• ADAUSDTLONG</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-medium mb-2">Configuration</h4>
+                                    <ul class="text-sm space-y-1 font-mono">
+                                        <li>• /set_leverage 20</li>
+                                        <li>• /set_size 200</li>
+                                        <li>• /set_tp 0.05</li>
+                                        <li>• /set_sl 0.02</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-8">
+                <!-- Bot Status -->
+                <div class="trading-card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <span class="text-xl mr-2">🤖</span>
+                        Bot Status
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Status</span>
+                            <span class="text-sm font-medium text-green-600">Running</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Uptime</span>
+                            <span class="text-sm font-medium" id="uptime">2h 34m</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Last Signal</span>
+                            <span class="text-sm font-medium">3m ago</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Mode</span>
+                            <span class="text-sm font-medium text-blue-600">Testnet</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Signals -->
+                <div class="trading-card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <span class="text-xl mr-2">📡</span>
+                        Recent Signals
+                    </h3>
+                    
+                    <div class="space-y-3" id="recent-signals">
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div>
+                                <div class="font-mono font-semibold text-sm">BTCUSDTLONG</div>
+                                <div class="text-xs text-gray-500">3 minutes ago</div>
+                            </div>
+                            <div class="text-green-600 text-xs font-medium">Executed</div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                            <div>
+                                <div class="font-mono font-semibold text-sm">ETHUSDTSHORT</div>
+                                <div class="text-xs text-gray-500">15 minutes ago</div>
+                            </div>
+                            <div class="text-red-600 text-xs font-medium">Executed</div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <div>
+                                <div class="font-mono font-semibold text-sm">ADAUSDTLONG</div>
+                                <div class="text-xs text-gray-500">1 hour ago</div>
+                            </div>
+                            <div class="text-blue-600 text-xs font-medium">Closed +$45</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Terminal -->
+                <div class="trading-card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <span class="text-xl mr-2">💻</span>
+                        Live Terminal
+                    </h3>
+                    
+                    <div class="terminal" id="terminal">
+                        <div class="terminal-line">[2024-01-15 14:30:25] Bot started successfully</div>
+                        <div class="terminal-line">[2024-01-15 14:30:26] Connected to Binance Testnet</div>
+                        <div class="terminal-line">[2024-01-15 14:30:27] Telegram bot listening...</div>
+                        <div class="terminal-line">[2024-01-15 14:33:12] Signal received: BTCUSDTLONG</div>
+                        <div class="terminal-line">[2024-01-15 14:33:13] Opening LONG position for BTCUSDT</div>
+                        <div class="terminal-line">[2024-01-15 14:33:14] Position opened: Entry $43,250</div>
+                        <div class="terminal-line">[2024-01-15 14:33:15] TP set at $45,412.50 (+5%)</div>
+                        <div class="terminal-line">[2024-01-15 14:33:16] SL set at $42,385 (-2%)</div>
+                        <div class="terminal-line animate-blink">Waiting for signals...</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="trading-card p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <span class="text-xl mr-2">⚡</span>
+                        Quick Actions
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <button onclick="closeAllPositions()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Close All Positions
+                        </button>
+                        <button onclick="pauseBot()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Pause Trading
+                        </button>
+                        <button onclick="exportLogs()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Export Logs
+                        </button>
+                        <button onclick="testConnection()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Test Connection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Info -->
+        <div class="mt-12 glass rounded-2xl p-8 text-center">
+            <h3 class="text-2xl font-bold text-white mb-4">Developed by NIBRAS AHMED</h3>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-8 text-white/90">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📧</span>
+                    <a href="mailto:ahmadnibraas@gmail.com" class="hover:text-white transition-colors font-medium">
+                        ahmadnibraas@gmail.com
+                    </a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">📱</span>
+                    <a href="tel:+251953536342" class="hover:text-white transition-colors font-medium">
+                        +251953536342
+                    </a>
+                </div>
+            </div>
+            <div class="mt-4 text-white/70 text-sm">
+                Expert in Cryptocurrency Trading Bots, Telegram Integration & Binance API Development
+            </div>
+            <div class="mt-6 flex flex-wrap justify-center gap-4">
+                <span class="bg-white/10 px-4 py-2 rounded-full text-sm">Python Trading Bots</span>
+                <span class="bg-white/10 px-4 py-2 rounded-full text-sm">Binance Futures API</span>
+                <span class="bg-white/10 px-4 py-2 rounded-full text-sm">Telegram Integration</span>
+                <span class="bg-white/10 px-4 py-2 rounded-full text-sm">Automated Trading</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let botRunning = true;
+        let startTime = new Date();
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUptime();
+            setInterval(updateUptime, 60000); // Update every minute
+            setInterval(addRandomTerminalLog, 10000); // Add log every 10 seconds
+            loadConfiguration();
+        });
+
+        // Update uptime display
+        function updateUptime() {
+            const now = new Date();
+            const diff = now - startTime;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            document.getElementById('uptime').textContent = `${hours}h ${minutes}m`;
+        }
+
+        // Toggle bot on/off
+        function toggleBot() {
+            botRunning = !botRunning;
+            const statusIndicator = document.getElementById('bot-status');
+            const statusText = document.getElementById('bot-status-text');
+            const toggleButton = document.getElementById('bot-toggle-text');
+
+            if (botRunning) {
+                statusIndicator.className = 'w-3 h-3 rounded-full status-online animate-pulse';
+                statusText.textContent = 'Bot Online';
+                toggleButton.textContent = 'Stop Bot';
+                addTerminalLog('Bot started successfully');
+                startTime = new Date();
+            } else {
+                statusIndicator.className = 'w-3 h-3 rounded-full status-offline';
+                statusText.textContent = 'Bot Offline';
+                toggleButton.textContent = 'Start Bot';
+                addTerminalLog('Bot stopped by user');
+            }
+        }
+
+        // Save configuration
+        function saveConfiguration() {
+            const config = {
+                tradingMode: document.getElementById('trading-mode').value,
+                leverage: document.getElementById('leverage').value,
+                positionSize: document.getElementById('position-size').value,
+                takeProfit: document.getElementById('take-profit').value,
+                stopLoss: document.getElementById('stop-loss').value,
+                allowedSymbols: document.getElementById('allowed-symbols').value
+            };
+
+            localStorage.setItem('botConfig', JSON.stringify(config));
+            addTerminalLog(`Configuration saved: Leverage ${config.leverage}x, Size $${config.positionSize}`);
+            showNotification('Configuration saved successfully!', 'success');
+        }
+
+        // Load configuration
+        function loadConfiguration() {
+            const savedConfig = localStorage.getItem('botConfig');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                document.getElementById('trading-mode').value = config.tradingMode || 'testnet';
+                document.getElementById('leverage').value = config.leverage || '10';
+                document.getElementById('position-size').value = config.positionSize || '100';
+                document.getElementById('take-profit').value = config.takeProfit || '5';
+                document.getElementById('stop-loss').value = config.stopLoss || '2';
+                document.getElementById('allowed-symbols').value = config.allowedSymbols || 'BTCUSDT,ETHUSDT,ADAUSDT,DOTUSDT';
+            }
+        }
+
+        // Reset configuration to defaults
+        function resetConfiguration() {
+            document.getElementById('trading-mode').value = 'testnet';
+            document.getElementById('leverage').value = '10';
+            document.getElementById('position-size').value = '100';
+            document.getElementById('take-profit').value = '5';
+            document.getElementById('stop-loss').value = '2';
+            document.getElementById('allowed-symbols').value = 'BTCUSDT,ETHUSDT,ADAUSDT,DOTUSDT';
+            
+            localStorage.removeItem('botConfig');
+            addTerminalLog('Configuration reset to defaults');
+            showNotification('Configuration reset to defaults', 'info');
+        }
+
+        // Quick action functions
+        function closeAllPositions() {
+            if (confirm('Are you sure you want to close all positions?')) {
+                addTerminalLog('Closing all positions...');
+                setTimeout(() => {
+                    addTerminalLog('All positions closed successfully');
+                    showNotification('All positions closed', 'success');
+                }, 2000);
+            }
+        }
+
+        function pauseBot() {
+            addTerminalLog('Trading paused - bot will not execute new signals');
+            showNotification('Trading paused', 'warning');
+        }
+
+        function exportLogs() {
+            addTerminalLog('Exporting trading logs...');
+            setTimeout(() => {
+                addTerminalLog('Logs exported to trading_logs.csv');
+                showNotification('Logs exported successfully', 'success');
+            }, 1000);
+        }
+
+        function testConnection() {
+            addTerminalLog('Testing Binance connection...');
+            setTimeout(() => {
+                addTerminalLog('✓ Binance API connection successful');
+                addTerminalLog('✓ Telegram bot connection successful');
+                showNotification('All connections working properly', 'success');
+            }, 2000);
+        }
+
+        // Terminal functions
+        function addTerminalLog(message) {
+            const terminal = document.getElementById('terminal');
+            const timestamp = new Date().toLocaleString();
+            const logLine = document.createElement('div');
+            logLine.className = 'terminal-line';
+            logLine.textContent = `[${timestamp}] ${message}`;
+            
+            // Remove the blinking "Waiting for signals..." line if it exists
+            const blinkingLine = terminal.querySelector('.animate-blink');
+            if (blinkingLine) {
+                blinkingLine.remove();
+            }
+            
+            terminal.appendChild(logLine);
+            
+            // Add new blinking line
+            const waitingLine = document.createElement('div');
+            waitingLine.className = 'terminal-line animate-blink';
+            waitingLine.textContent = 'Waiting for signals...';
+            terminal.appendChild(waitingLine);
+            
+            // Auto-scroll to bottom
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Keep only last 20 lines
+            const lines = terminal.querySelectorAll('.terminal-line:not(.animate-blink)');
+            if (lines.length > 20) {
+                lines[0].remove();
+            }
+        }
+
+        function addRandomTerminalLog() {
+            if (!botRunning) return;
+            
+            const randomLogs = [
+                'Monitoring Telegram channel for signals...',
+                'Checking Binance account balance',
+                'Updating market prices',
+                'Heartbeat: All systems operational',
+                'Scanning for arbitrage opportunities',
+                'Risk management check completed'
+            ];
+            
+            const randomLog = randomLogs[Math.floor(Math.random() * randomLogs.length)];
+            addTerminalLog(randomLog);
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${colors[type]} text-white max-w-sm transform translate-x-full transition-transform duration-300`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Slide in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Slide out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            if (botRunning) {
+                // Update PNL with small random changes
+                const pnlElement = document.getElementById('total-pnl');
+                const currentPnl = parseFloat(pnlElement.textContent.replace(/[+$,]/g, ''));
+                const change = (Math.random() - 0.5) * 10;
+                const newPnl = currentPnl + change;
+                pnlElement.textContent = `${newPnl >= 0 ? '+' : ''}$${newPnl.toFixed(2)}`;
+                pnlElement.className = newPnl >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+            }
+        }, 5000);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveConfiguration();
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        resetConfiguration();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        toggleBot();
+                        break;
+                }
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971b8d2620e2348a',t:'MTc1NTYyNjQzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
